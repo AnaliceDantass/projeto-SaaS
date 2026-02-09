@@ -1,17 +1,23 @@
-FROM node:20-alpine                    
+FROM node:20-alpine AS appbuild                  
 
-WORKDIR /app                                                                                                           >                                                                                                                      
+WORKDIR /app                                                                                                           
 
-COPY package*.json ./                                                                                                
+COPY ./ ./
 
-RUN npm install                                                                                                        
+RUN yarn build
 
-COPY . .                                                                                                               
+FROM node:20-alpine 
 
+WORKDIR /app                                                                                                           
+                                                                                                              
 EXPOSE 3000                                                                                                                                                                                                               
 
-ENV NODE_ENV = production                                                                                               
+COPY --from=appbuild /app/dit ./dist
 
-ENV PORT = 3000                                                                                                                                                                                                                                 
+COPY --from=appbuild /app/package.json /app/yarn.lock ./
 
-CMD ["node", "app.js"] 
+RUN yarn install --production
+
+USER node
+
+CMD ["yarn", "start"] 
